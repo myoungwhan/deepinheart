@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+    <script>
+        // WARNING: For POST requests, body is set to null by browsers.
+        // var data = new FormData();
+        // data.append("query1", "{ \"query\": \"shelton\",    \"language\": \"en\"}");
+        var form = new FormData();
+        form.append("query1", "{ \"query\": \"avari\",    \"language\": \"en\"}");
+
+        // // ithink you miss this in ajax
+        $.ajax({
+            type: "POST",
+            url: "https://erplive.net/TechnicianApp/index.php/Services/searchByQuery",
+
+            cache: false,
+            data: form,
+
+            processData: false,
+            mimeType: "multipart/form-data",
+            contentType: false,
+            success: function (html) {
+                console.log(html);
+            }
+        });
+
+
+        // var settings = {
+        //     "url": "https://erplive.net/TechnicianApp/index.php/Services/searchByQuery",
+        //     "method": "POST",
+        //     "timeout": 0,
+        //     "headers": {
+        //         "Authorization": "Basic MzA2OTo4YTA2M2M3ZS01M2U3LTQ3YmYtOWUxYS00OTY2ZmUyZjhhYWY="
+        //     },
+        //     "processData": false,
+        //     "mimeType": "multipart/form-data",
+        //     "contentType": false,
+        //     "data": form
+        // };
+
+        // $.ajax(settings).done(function (response) {
+        //     console.log(response);
+        // });
+    </script>
+</body>
+
+</html>
+
+<!-- $.ajax({
+    type: "POST",
+    url: "https://erplive.net/TechnicianApp/index.php/Services/searchByQuery",
+    data: { data },
+    cache: false,
+    success: function (html) {
+        console.log(html);
+    }
+}); -->
