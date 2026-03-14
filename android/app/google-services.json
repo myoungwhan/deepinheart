@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "720273151430",
+    "project_id": "deep-in-heart",
+    "storage_bucket": "deep-in-heart.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:720273151430:android:d390662f3ddd415f61cec7",
+        "android_client_info": {
+          "package_name": "com.deepinheart.deepinheart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw_GOOqwv0MiE62lWJ1d7Nkh6XMCuGMRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

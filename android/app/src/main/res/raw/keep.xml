@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Resources to keep when using resource shrinking.
+    This file helps prevent removing resources that are referenced by code or other resources.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@layout/*"
+    tools:discard="@layout/unused" />
+
