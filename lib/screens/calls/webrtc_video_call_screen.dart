@@ -92,7 +92,7 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
       await _loadUserCoins();
 
       // Initialize WebRTC service
-      final roomId = WebRTCConfig.generateRoomId(widget.appointmentId ?? 0);
+      final roomId = WebRTCConfig.generateRoomId(widget.appointmentId?.toString() ?? "0");
       final userId = WebRTCConfig.generateUserId();
       
       _webrtcService = WebRTCService();
@@ -133,7 +133,8 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
         context,
         listen: false,
       );
-      _coinsLeft = (userProvider.user?.coins ?? 0).toDouble();
+      // Fixed: use userModel instead of user
+      _coinsLeft = (userProvider.userModel?.data.coins ?? 0).toDouble();
       _initialCoins = _coinsLeft;
       _coinsPerMinute = widget.counselorRate;
       _coinsPerSecond = _coinsPerMinute / 60.0;
@@ -176,17 +177,19 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
 
   void _startCallTimer() {
     _callTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        _callDuration = Duration(seconds: timer.tick);
-      });
+      if (mounted) {
+        setState(() {
+          _callDuration = Duration(seconds: timer.tick);
+        });
 
-      // Deduct coins every second
-      if (!widget.isCounselor && _isConnected) {
-        _deductCoins();
+        // Deduct coins every second
+        if (!widget.isCounselor && _isConnected) {
+          _deductCoins();
+        }
+
+        // Check for warnings
+        _checkCoinWarnings();
       }
-
-      // Check for warnings
-      _checkCoinWarnings();
     });
   }
 
@@ -266,7 +269,7 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
         callDuration: _callDuration,
       ),
     ).then((_) {
-      Get.back(); // Go back after rating
+      if (mounted) Get.back();
     });
   }
 
@@ -291,16 +294,20 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
 
   Future<void> _toggleMicrophone() async {
     await _webrtcService?.toggleMicrophone();
-    setState(() {
-      _isMicrophoneEnabled = !_isMicrophoneEnabled;
-    });
+    if (mounted) {
+      setState(() {
+        _isMicrophoneEnabled = !_isMicrophoneEnabled;
+      });
+    }
   }
 
   Future<void> _toggleCamera() async {
     await _webrtcService?.toggleCamera();
-    setState(() {
-      _isCameraEnabled = !_isCameraEnabled;
-    });
+    if (mounted) {
+      setState(() {
+        _isCameraEnabled = !_isCameraEnabled;
+      });
+    }
   }
 
   Future<void> _switchCamera() async {
@@ -308,14 +315,16 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
   }
 
   void _toggleSpeaker() {
-    setState(() {
-      _isSpeakerEnabled = !_isSpeakerEnabled;
-    });
-    // Implement speaker toggle logic
+    if (mounted) {
+      setState(() {
+        _isSpeakerEnabled = !_isSpeakerEnabled;
+      });
+    }
   }
 
   void _endCall() {
     _callTimer?.cancel();
+    _coinDeductionTimer?.cancel();
     _webrtcService?.dispose();
     Get.back();
   }
@@ -506,6 +515,7 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _callTimer?.cancel();
+    _coinDeductionTimer?.cancel();
     _webrtcService?.dispose();
     _localRenderer.dispose();
     _remoteRenderer.dispose();
