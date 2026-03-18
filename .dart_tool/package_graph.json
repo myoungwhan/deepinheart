@@ -171,21 +171,23 @@
     },
     {
       "name": "socket_io_client",
-      "version": "2.0.3+1",
+      "version": "3.1.4",
       "dependencies": [
-        "js",
         "logging",
-        "socket_io_common"
+        "socket_io_common",
+        "web"
       ]
     },
     {
       "name": "flutter_webrtc",
-      "version": "0.9.48+hotfix.1",
+      "version": "1.4.0",
       "dependencies": [
         "collection",
         "dart_webrtc",
         "flutter",
+        "logger",
         "path_provider",
+        "web",
         "webrtc_interface"
       ]
     },
@@ -1211,15 +1213,13 @@
       ]
     },
     {
-      "name": "js",
-      "version": "0.6.7",
-      "dependencies": [
-        "meta"
-      ]
+      "name": "web",
+      "version": "1.1.1",
+      "dependencies": []
     },
     {
       "name": "socket_io_common",
-      "version": "2.0.3",
+      "version": "3.1.1",
       "dependencies": [
         "logging"
       ]
@@ -1231,7 +1231,7 @@
     },
     {
       "name": "webrtc_interface",
-      "version": "1.4.0",
+      "version": "1.5.1",
       "dependencies": []
     },
     {
@@ -1248,7 +1248,7 @@
     },
     {
       "name": "dart_webrtc",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "dependencies": [
         "collection",
         "js",
@@ -1276,6 +1276,13 @@
       ]
     },
     {
+      "name": "js",
+      "version": "0.6.7",
+      "dependencies": [
+        "meta"
+      ]
+    },
+    {
       "name": "iris_method_channel",
       "version": "2.2.4",
       "dependencies": [
@@ -1297,11 +1304,6 @@
     {
       "name": "ffi",
       "version": "2.1.4",
-      "dependencies": []
-    },
-    {
-      "name": "web",
-      "version": "1.1.1",
       "dependencies": []
     },
     {
@@ -2885,6 +2887,14 @@
       "name": "asn1lib",
       "version": "1.6.5",
       "dependencies": []
+    },
+    {
+      "name": "logger",
+      "version": "2.7.0",
+      "dependencies": [
+        "clock",
+        "meta"
+      ]
     }
   ],
   "configVersion": 1
