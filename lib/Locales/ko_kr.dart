@@ -238,6 +238,9 @@ const Map<String, String> koKR = {
   "Call Duration:": "통화 시간:",
   "Coins Used:": "사용한 코인:",
   "OK": "확인",
+  "Agora Credentials Missing": "아고라 자격 증명이 없습니다",
+  "Agora credentials are missing in settings":
+      "설정에 아고라 자격 증명이 없습니다",
   "Rate Consultation": "상담 평가하기",
   "Failed to load page. Please check your connection.":
       "페이지를 로드하지 못했습니다. 연결을 확인하세요.",
