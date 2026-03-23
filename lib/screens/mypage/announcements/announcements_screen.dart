@@ -33,7 +33,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
       context,
       listen: false,
     );
-    await settingProvider.fetchAnnouncements();
+    await settingProvider.fetchAnnouncements(context);
   }
 
   String _formatDate(String dateString) {
@@ -46,12 +46,32 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   }
 
   String _formatDateTime(String dateString) {
+    if (dateString.isEmpty) return '—';
     try {
       final date = DateTime.parse(dateString);
       return DateFormat('yyyy-MM-dd HH:mm').format(date);
     } catch (e) {
       return dateString;
     }
+  }
+
+  /// Card: show start date, or created_at if start is empty.
+  String _dateOrCreatedForDisplay(EmergencyAnnouncement a) {
+    if (a.startDate.isNotEmpty) return _formatDate(a.startDate);
+    if (a.createdAt.isNotEmpty) return _formatDateTime(a.createdAt);
+    return '—';
+  }
+
+  /// Detail: show "Date: start - end" or "Date: created" when start/end are empty.
+  String _dateRangeForDetail(EmergencyAnnouncement a) {
+    final hasStart = a.startDate.isNotEmpty;
+    final hasEnd = a.endDate.isNotEmpty;
+    if (hasStart && hasEnd) {
+      return "${"Date".tr}: ${_formatDateTime(a.startDate)} - ${_formatDateTime(a.endDate)}";
+    }
+    if (hasStart) return "${"Date".tr}: ${_formatDateTime(a.startDate)}";
+    if (a.createdAt.isNotEmpty) return "${"Date".tr}: ${_formatDateTime(a.createdAt)}";
+    return "${"Date".tr}: —";
   }
 
   @override
@@ -237,7 +257,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                       ),
                       SizedBox(width: 4.w),
                       CustomText(
-                        text: _formatDate(announcement.startDate),
+                        text: _dateOrCreatedForDisplay(announcement),
                         fontSize: FontConstants.font_12,
                         color: Colors.grey.shade600,
                       ),
@@ -333,8 +353,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                           ),
                           SizedBox(width: 8.w),
                           CustomText(
-                            text:
-                                "${"Date".tr}: ${_formatDateTime(announcement.startDate)} - ${_formatDateTime(announcement.endDate)}",
+                            text: _dateRangeForDetail(announcement),
                             fontSize: FontConstants.font_12,
                             color: Colors.grey.shade600,
                           ),

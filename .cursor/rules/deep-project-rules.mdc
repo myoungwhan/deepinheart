@@ -1,0 +1,226 @@
+---
+description: Deepinheart Flutter client rules based on the current lib structure
+alwaysApply: true
+---
+
+# Deepinheart Project Rules
+
+## Project Context
+
+- This repository is the **Deepinheart Flutter client** (`deepinheart_client_clone`).
+- All app code lives under the root `lib/` directory.
+
+- Always act as a **senior Flutter developer** (and give extra clarity when discussing backend concepts).
+
+---
+
+## Folder Rules (Flutter Only)
+
+### Flutter Path
+
+- Main Flutter entry point: `lib/main.dart`.
+- Primary app structure under:
+  - `lib/Controller/` (models, viewmodels, theme & locale controllers, API client)
+  - `lib/screens/` (end-user app screens)
+  - `lib/screens_consoler/` (counselor / console screens and widgets)
+  - `lib/views/` (reusable UI pieces like buttons, nav bars, helpers)
+  - `lib/services/` (non-UI services such as call state, network monitor, translation helpers)
+  - `lib/config/` (API endpoints, payment config, theme/size config)
+  - `lib/Locales/` (localization files)
+
+### Do Not
+
+- Do **not** introduce new top-level folders under `lib/` without a clear architectural reason.
+
+---
+
+## Flutter Development Rules
+
+### Architecture
+
+- Use Flutter best practices for a scalable, maintainable app.
+- Use `provider` (ChangeNotifier + MultiProvider) for state management as already used in `main.dart`.
+- Use `GetX` **only** for:
+  - navigation (`Get.to`, `Get.off`, `Get.back`, etc.)
+  - theming / simple reactivity via existing controllers
+  - localization through the existing `LocalizationService`.
+- Follow a modular structure:
+  - **UI**: in `screens/`, `screens_consoler/`, and `views/`
+  - **State & logic**: in `Controller/Viewmodel/`
+  - **Data models**: in `Controller/Model/`
+  - **Services**: in `services/` or `Controller` service-like classes
+- Keep widgets small, focused, and reusable.
+- Prefer **private widget classes** over large build methods or ad-hoc function widgets for complex UI.
+
+### Flutter Folder Structure (Deepinheart-specific)
+
+Use and extend the existing structure rather than inventing new patterns:
+
+- `lib/views/`
+  - `custom_button.dart`
+  - `custom_nav_bar.dart`
+  - `consuler_custom_nav_bar.dart`
+  - `ui_helpers.dart`
+  - loader and dialog views
+- `lib/Controller/Model/`
+  - models for users, counselors, reservations, services, coupons, etc.
+- `lib/Controller/Viewmodel/`
+  - providers for booking, payment, services, settings, notifications, etc.
+- `lib/screens/`
+  - auth, home, calls, reservations, mypage, search, counselor-facing screens
+- `lib/screens_consoler/`
+  - counselor dashboard, revenues, account tabs, chat, consultation management widgets
+- `lib/services/`
+  - `call_state_manager.dart`
+  - `network_monitor_service.dart`
+  - translation helpers/services
+- `lib/config/`
+  - `api_endpoints.dart`, `payment_config.dart`, theme/size configuration
+- `lib/Locales/`
+  - `en_us.dart`, `ko_kr.dart`, plus any future locale files
+
+If you need to add new functionality:
+
+- Prefer extending these existing folders.
+- Only create a new top-level folder under `lib/` if it clearly improves organization and fits the overall architecture.
+
+### Flutter UI Rules
+
+- Respect the existing design language and extend it consistently.
+- Use Material 3 principles where possible, but **follow the current app style** when there is a conflict.
+- Build **responsive layouts** for multiple mobile screen sizes:
+  - Prefer `MediaQuery`, `LayoutBuilder`, `ScreenUtil`, and flexible widgets over fixed pixel sizes.
+- Prefer reusable custom widgets over repeating raw widget trees:
+  - Extract commonly used tiles, cards, buttons, and dialogs into `views/` or `screens`-local widgets.
+- Use meaningful variable, class, and widget names that reflect the domain (e.g. counselor, reservation, coupon).
+- Add comments only where necessary to explain non-obvious intent or tricky logic.
+- Use `const` constructors wherever possible to reduce rebuilds.
+- Avoid unnecessary rebuilds:
+  - split large widgets
+  - use selectors or smaller providers when needed
+  - avoid heavy work in `build` methods.
+
+---
+
+## Reusability Rules (Deepinheart UI)
+
+When editing or creating UI:
+
+- **Buttons**
+  - Prefer reusing `lib/views/custom_button.dart` for primary and secondary buttons.
+  - When new button styles are needed, extend or generalize the existing button widgets rather than duplicating code.
+
+- **Navigation bars**
+  - Reuse or extend:
+    - `lib/views/custom_nav_bar.dart`
+    - `lib/views/consuler_custom_nav_bar.dart`
+  - Keep bottom navigation, tabs, and app bars consistent across screens.
+
+- **Text fields**
+  - Prefer using or extending:
+    - `lib/views/custom_textfiled.dart`
+    - `lib/views/custom_textfieldphone.dart`
+  - Centralize new input behaviors/validations here when reused across multiple forms.
+
+- **Spacing & layout helpers**
+  - Reuse `lib/views/ui_helpers.dart` for spacing and layout utilities when appropriate.
+  - If new spacing patterns repeat, add helpers there instead of scattering magic numbers.
+
+- **Colors & theme**
+  - Prefer centralized color and theme configuration:
+    - existing `views/colors.dart` (if present)
+    - `config/theme_data.dart` or any app-specific theme config.
+  - Avoid hardcoding colors directly in widgets; use theme or shared color constants.
+
+- If you notice repeated UI or logic patterns:
+  - Extract them to `views/`, a smaller widget inside the same `screens/` subtree, or a helper class/service as appropriate.
+
+---
+
+## Localization Rules (Deepinheart)
+
+- Use the existing **GetX `LocalizationService`** and `Locales` files for localization.
+- Supported locales currently:
+  - `lib/Locales/en_us.dart` (English)
+  - `lib/Locales/ko_kr.dart` (Korean)
+- All new user-visible text should be:
+  - added as a translation key in the appropriate locale files
+  - referenced via the localization/translation helpers rather than hardcoded strings.
+- Use GetX for navigation and to wire up locale changes (see `Controller/locale_controller.dart` and `main.dart` usage).
+- Keep translation keys:
+  - structured by feature/screen
+  - meaningful and consistent between languages.
+
+---
+
+## Theme, Design Tokens, and Assets
+
+- Centralize colors, typography, spacing, radii, and shadows in theme/config files under `config/` or shared `views` helpers.
+- When implementing or refactoring UI:
+  - reuse existing colors and text styles before introducing new ones
+  - if you must add new tokens, add them to the centralized theme instead of inlining.
+- Assets:
+  - Place images/icons in the existing asset folders configured in `pubspec.yaml`.
+  - Update `pubspec.yaml` whenever adding or moving assets so they load correctly.
+  - Prefer vector/SVG assets for icons when supported in the app.
+
+---
+
+## API Integration Rules (Flutter Client)
+
+- Keep **all API-calling logic out of UI widgets**.
+- Use:
+  - API client and service classes (e.g. under `lib/Controller/Viewmodel/api_client.dart` and `services/`)
+  - viewmodels/providers in `Controller/Viewmodel/` to expose reactive state to the UI.
+- For any networked feature, always handle:
+  - loading state
+  - empty state
+  - success state
+  - error state
+  - no-internet state (reuse `network_monitor_service` patterns where possible).
+- Models in `Controller/Model/` should:
+  - map API responses to strongly-typed Dart classes
+  - provide `fromJson`/`toJson` or equivalent helpers.
+- Do not write substantial API logic directly inside widget classes; keep widgets focused on presentation and user interaction.
+
+---
+
+## Functional & UX Requirements
+
+- All new code should be **functional**, not just visual:
+  - forms should validate input and show errors clearly
+  - actions should trigger real viewmodel/service calls where backend support exists.
+- Navigation:
+  - keep flows consistent with existing patterns (e.g. how reservations, coupons, and counselor flows are wired).
+  - avoid dead buttons or unfinished flows unless explicitly marked as TODO.
+- Lists and detail screens:
+  - should use real or mocked API data through providers when backend endpoints exist.
+  - must handle empty and error states gracefully.
+
+---
+
+## Code Quality & Documentation
+
+- Use meaningful, domain-specific class, method, and variable names.
+- Avoid very large files; split complex screens into smaller widgets and helpers.
+- Prefer composition and reuse over duplication.
+- Keep imports organized and remove unused imports during refactors.
+- Use barrel exports only when they genuinely improve clarity for a module.
+- For any feature involving non-trivial business logic or architecture:
+  - create or update a Markdown documentation file under `docs/` that explains:
+    - the feature’s purpose
+    - key flows
+    - important decisions (especially where Deepinheart diverges from defaults).
+  - Before writing new docs, check existing files in `docs/` and reuse patterns and terminology.
+- Use `///` doc comments for public functions and complex private helpers, focusing on **why** they exist and important assumptions.
+
+---
+
+## How to Work With These Rules
+
+- When editing or adding Flutter code in this repo:
+  - stay within the existing directory structure
+  - reuse established patterns (providers, GetX navigation, LocalizationService, services)
+  - prefer refactoring towards more consistency rather than introducing new one-off patterns.
+- When discussing or planning backend changes for Deepinheart:
+  - but do **not** generate backend files in this Flutter repo; treat the backend as an external system consumed via APIs.

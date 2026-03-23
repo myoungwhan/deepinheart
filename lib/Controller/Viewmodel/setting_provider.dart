@@ -175,17 +175,26 @@ class SettingProvider extends ChangeNotifier {
     }
   }
 
-  /// Fetch all announcements from API
-  Future<void> fetchAnnouncements() async {
+  /// Fetch all announcements from API (GET /api/announcements with Bearer token).
+  /// Response: { "success": true, "message": "...", "data": [ { id, title, category, content, type, start_date, end_date, ... } ] }
+  Future<void> fetchAnnouncements(BuildContext context) async {
     _isLoadingAnnouncements = true;
     notifyListeners();
 
     try {
       debugPrint('📢 Fetching announcements...');
 
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+      };
+      final token = Provider.of<UserViewModel>(context, listen: false).userModel?.data.token;
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
       final response = await http.get(
         Uri.parse(ApiEndPoints.ANNOUNCEMENTS),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
 
       if (response.statusCode == 200) {

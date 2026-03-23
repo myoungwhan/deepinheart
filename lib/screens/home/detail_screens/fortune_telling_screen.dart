@@ -94,6 +94,7 @@ class _FortuneTellingScreenState extends State<FortuneTellingScreen> {
 
     try {
       final result = await serviceProvider.fetchFaqAndReviews(widget.model.id);
+      print(result?.faqs.length.toString() ?? '0' + "faq****");
       if (result != null) {
         setState(() {
           faqs = result.faqs;
@@ -254,8 +255,10 @@ class _FortuneTellingScreenState extends State<FortuneTellingScreen> {
                   ),
                   UIHelper.verticalSpaceMd,
 
-                  // Features GridView - Different features based on model name
-                  widget.model.name.toLowerCase().contains('saju')
+                  // Features: from API when available, else fallback by category name
+                  widget.model.features.isNotEmpty
+                      ? _buildDynamicFeatures()
+                      : widget.model.name.toLowerCase().contains('saju')
                       ? _buildSajuFeatures()
                       : widget.model.name.toLowerCase().contains('divine') ||
                           widget.model.name.toLowerCase().contains('spiritual')
@@ -363,7 +366,11 @@ class _FortuneTellingScreenState extends State<FortuneTellingScreen> {
       decoration: BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: CachedNetworkImageProvider(widget.model.image),
+          image: CachedNetworkImageProvider(
+            widget.model.background_image.isNotEmpty
+                ? widget.model.background_image
+                : widget.model.image,
+          ),
         ),
       ),
       child: BlurryContainer(
@@ -482,7 +489,24 @@ class _FortuneTellingScreenState extends State<FortuneTellingScreen> {
     );
   }
 
-  // Saju Features
+  /// Builds feature list from API when category has features.
+  Widget _buildDynamicFeatures() {
+    return Column(
+      children:
+          widget.model.features
+              .map(
+                (item) => _buildFeatureListItem(
+                  imageUrl: item.image,
+                  iconData: Icons.article_outlined,
+                  title: item.title,
+                  description: item.text,
+                ),
+              )
+              .toList(),
+    );
+  }
+
+  // Saju features (fallback when API has no features)
   Widget _buildSajuFeatures() {
     final features = [
       {
@@ -510,15 +534,14 @@ class _FortuneTellingScreenState extends State<FortuneTellingScreen> {
             "Diagnose Relationship Harmony Through Fortune Compatibility Analysis.",
       },
     ];
-
     return Column(
       children:
           features
               .map(
-                (feature) => _buildFeatureListItem(
-                  icon: feature["icon"] as IconData,
-                  title: (feature["title"] as String).tr,
-                  description: (feature["description"] as String).tr,
+                (f) => _buildFeatureListItem(
+                  iconData: f["icon"] as IconData,
+                  title: (f["title"] as String).tr,
+                  description: (f["description"] as String).tr,
                 ),
               )
               .toList(),
@@ -559,7 +582,7 @@ class _FortuneTellingScreenState extends State<FortuneTellingScreen> {
           features
               .map(
                 (feature) => _buildFeatureListItem(
-                  icon: feature["icon"] as IconData,
+                  iconData: feature["icon"] as IconData,
                   title: (feature["title"] as String).tr,
                   description: (feature["description"] as String).tr,
                 ),
@@ -598,7 +621,7 @@ class _FortuneTellingScreenState extends State<FortuneTellingScreen> {
           features
               .map(
                 (feature) => _buildFeatureListItem(
-                  icon: feature["icon"] as IconData,
+                  iconData: feature["icon"] as IconData,
                   title: (feature["title"] as String).tr,
                   description: (feature["description"] as String).tr,
                 ),
@@ -609,24 +632,29 @@ class _FortuneTellingScreenState extends State<FortuneTellingScreen> {
 
   // Feature List Item Widget
   Widget _buildFeatureListItem({
-    required IconData icon,
+    String? imageUrl,
+    IconData? iconData,
     required String title,
     required String description,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 16.h),
+      padding: EdgeInsets.only(bottom: 15.h),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon
-          Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: Color(0xff3B82F6).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8.r),
+          if (imageUrl != null && imageUrl.isNotEmpty)
+            CachedNetworkImage(
+              imageUrl: imageUrl,
+              width: 35.w,
+              height: 35.w,
+              fit: BoxFit.cover,
+            )
+          else
+            Icon(
+              iconData ?? Icons.article_outlined,
+              color: Color(0xff3B82F6),
+              size: 20.w,
             ),
-            child: Icon(icon, color: Color(0xff3B82F6), size: 20.w),
-          ),
 
           SizedBox(width: 12.w),
 

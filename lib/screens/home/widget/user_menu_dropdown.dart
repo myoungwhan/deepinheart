@@ -1,4 +1,5 @@
 import 'package:deepinheart/Controller/Viewmodel/userviewmodel.dart';
+import 'package:deepinheart/main.dart';
 import 'package:deepinheart/screens/mypage/my_page_screen.dart';
 import 'package:deepinheart/views/custom_text.dart';
 import 'package:deepinheart/views/font_constants.dart';
@@ -47,10 +48,10 @@ class UserMenuDropdown extends StatelessWidget {
                 Get.to(() => MyPageScreen());
               },
             ),
-            
+
             // Divider
             Divider(height: 1, color: Colors.grey[200]),
-            
+
             // Logout Option
             _buildMenuItem(
               context,
@@ -80,17 +81,10 @@ class UserMenuDropdown extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 14.h,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 20.w,
-              color: iconColor ?? Colors.black87,
-            ),
+            Icon(icon, size: 20.w, color: iconColor ?? Colors.black87),
             SizedBox(width: 12.w),
             Expanded(
               child: CustomText(
@@ -113,9 +107,8 @@ class UserMenuDropdown extends StatelessWidget {
       message: 'Would you really log out?'.tr,
       onConfirm: () {
         Get.back();
-        context.read<UserViewModel>().clearUserModel();
+        navigatorKey.currentContext!.read<UserViewModel>().clearUserModel();
       },
     );
   }
 }
-

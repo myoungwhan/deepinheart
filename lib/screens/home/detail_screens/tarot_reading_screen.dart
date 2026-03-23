@@ -159,7 +159,7 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
                   CustomTitleWithButton(title: "Features of Tarot Reading".tr),
                   UIHelper.verticalSpaceMd,
 
-                  // Features GridView
+                  // Features GridView: from API when available, else fallback
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
@@ -167,32 +167,23 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
                     crossAxisSpacing: 12.w,
                     mainAxisSpacing: 12.h,
                     childAspectRatio: 1.25,
-                    children: [
-                      buildFeatureCard(
-                        icon: Icons.remove_red_eye_outlined,
-                        title: "Intuitive Insight".tr,
-                        description: "Special insights through tarot cards".tr,
-                        color: Color(0xff3B82F6),
-                      ),
-                      buildFeatureCard(
-                        icon: Icons.question_mark_outlined,
-                        title: "Future Guidance".tr,
-                        description: "Future predictions for better choices".tr,
-                        color: Color(0xff8B5CF6),
-                      ),
-                      buildFeatureCard(
-                        icon: Icons.favorite_border,
-                        title: "Psychological Healing".tr,
-                        description: "Inner peace and mental stability".tr,
-                        color: Color(0xff06B6D4),
-                      ),
-                      buildFeatureCard(
-                        icon: Icons.people_outline,
-                        title: "Expert Interpretation".tr,
-                        description: "Accurate and reliable consultation".tr,
-                        color: Color(0xff8B5CF6),
-                      ),
-                    ],
+                    children:
+                        widget.model.features.isNotEmpty
+                            ? widget.model.features
+                                .asMap()
+                                .entries
+                                .map(
+                                  (e) => buildFeatureCard(
+                                    icon: e.value.image ?? '',
+                                    title: e.value.title,
+                                    description: e.value.text,
+                                    color:
+                                        _tarotFeatureColors[e.key %
+                                            _tarotFeatureColors.length],
+                                  ),
+                                )
+                                .toList()
+                            : [],
                   ),
 
                   UIHelper.verticalSpaceMd,
@@ -279,7 +270,11 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
       decoration: BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: CachedNetworkImageProvider(widget.model.image),
+          image: CachedNetworkImageProvider(
+            widget.model.background_image.isNotEmpty
+                ? widget.model.background_image
+                : widget.model.image,
+          ),
         ),
       ),
       child: BlurryContainer(
@@ -560,8 +555,15 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
   // Feature Card Widget
 }
 
+const _tarotFeatureColors = [
+  Color(0xff3B82F6),
+  Color(0xff8B5CF6),
+  Color(0xff06B6D4),
+  Color(0xff8B5CF6),
+];
+
 Widget buildFeatureCard({
-  required IconData icon,
+  required String icon,
   required String title,
   required String description,
   required Color color,
@@ -585,13 +587,19 @@ Widget buildFeatureCard({
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Icon
-        Container(
-          padding: EdgeInsets.all(10.w),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(30.r),
-          ),
-          child: Icon(icon, color: color, size: 24.w),
+        // Container(
+        //   padding: EdgeInsets.all(10.w),
+        //   decoration: BoxDecoration(
+        //     color: color.withOpacity(0.3),
+        //     borderRadius: BorderRadius.circular(30.r),
+        //   ),
+        //   child: Icon(icon, color: color, size: 24.w),
+        // ),
+        CachedNetworkImage(
+          imageUrl: icon,
+          width: 45.w,
+          height: 45.w,
+          fit: BoxFit.cover,
         ),
         UIHelper.verticalSpaceSm,
 

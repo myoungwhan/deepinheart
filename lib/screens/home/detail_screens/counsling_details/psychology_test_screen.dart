@@ -264,13 +264,18 @@ class _PsychologyTestScreenState extends State<PsychologyTestScreen> {
                             mainAxisSpacing: 12.h,
                             childAspectRatio: 1.15,
                             children:
-                                ServiceProvider.counselingFeatures
+                                (widget.model.features.isNotEmpty
+                                        ? widget.model.features
+                                        : ServiceProvider.counselingFeatures)
                                     .map(
                                       (e) => buildFeatureCard(
-                                        icon: e.icon,
+                                        icon: e.image ?? '',
                                         title: e.title,
-                                        description: e.description,
-                                        color: e.color,
+                                        description: e.text,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primaryContainer,
                                       ),
                                     )
                                     .toList(),
@@ -716,7 +721,11 @@ class _PsychologyTestScreenState extends State<PsychologyTestScreen> {
       decoration: BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: CachedNetworkImageProvider(widget.model.image),
+          image: CachedNetworkImageProvider(
+            widget.model.background_image.isNotEmpty
+                ? widget.model.background_image
+                : widget.model.image,
+          ),
         ),
       ),
       child: BlurryContainer(

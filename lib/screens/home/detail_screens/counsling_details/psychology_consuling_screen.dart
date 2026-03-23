@@ -285,14 +285,22 @@ class _PsychologyConsulingScreenState extends State<PsychologyConsulingScreen> {
                             mainAxisSpacing: 12.h,
                             childAspectRatio: 1.15,
                             children:
-                                ServiceProvider.PsycologycounselingFeatures.map(
-                                  (e) => buildFeatureCard(
-                                    icon: e.icon,
-                                    title: e.title,
-                                    description: e.description,
-                                    color: e.color,
-                                  ),
-                                ).toList(),
+                                (widget.model.features.isNotEmpty
+                                        ? widget.model.features
+                                        : ServiceProvider
+                                            .PsycologycounselingFeatures)
+                                    .map(
+                                      (e) => buildFeatureCard(
+                                        icon: e.image ?? '',
+                                        title: e.title,
+                                        description: e.text,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primaryContainer,
+                                      ),
+                                    )
+                                    .toList(),
                           ),
                           UIHelper.verticalSpaceMd,
                           CustomTitleWithButton(
@@ -430,7 +438,11 @@ class _PsychologyConsulingScreenState extends State<PsychologyConsulingScreen> {
       decoration: BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: CachedNetworkImageProvider(widget.model.image),
+          image: CachedNetworkImageProvider(
+            widget.model.background_image.isNotEmpty
+                ? widget.model.background_image
+                : widget.model.image,
+          ),
         ),
       ),
       child: BlurryContainer(

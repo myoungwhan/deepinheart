@@ -92,6 +92,7 @@ class Category {
   String name;
   String? nameTranslated;
   String image;
+  String background_image;
   String description;
   String position;
   String screenNumber;
@@ -112,6 +113,7 @@ class Category {
     required this.features,
     required this.questions,
     this.nameTranslated,
+    this.background_image = "",
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
@@ -140,6 +142,7 @@ class Category {
               json["sub_categories"].map((x) => SubCategory.fromJson(x)),
             )
             : [],
+    background_image: json["background_image"] ?? "",
   );
 
   Map<String, dynamic> toJson() => {
@@ -150,6 +153,7 @@ class Category {
     "position": position,
     "screen_number": screenNumber,
     "status": status,
+    "background_image": background_image,
     "sub_categories": List<dynamic>.from(subCategories.map((x) => x.toJson())),
   };
   Future<String> getTranslatedName() async {

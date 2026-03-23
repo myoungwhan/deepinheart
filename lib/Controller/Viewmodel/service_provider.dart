@@ -74,85 +74,97 @@ class ServiceProvider extends ChangeNotifier {
 
   static final List<FeatureModel> fortuneFeatures = [
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Interpretation Through Spiritual Connection',
-      description:
+      text:
           'Intuitively understand the essence of current situations and problems through spiritual connections.',
-      icon: CupertinoIcons.bolt_circle,
-      color: Color(0xFFB3E5FC),
+      image: null,
     ),
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Immediate Problem-Solving Direction',
-      description:
+      text:
           'It gives fast and clear answers to specific questions and presents realistic advice and solutions.',
-      icon: CupertinoIcons.lightbulb,
-      color: Color(0xFFE1BEE7),
+      image: null,
     ),
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Analysis of Influence of Ancestors and Energy',
-      description:
+      text:
           'We talk about the energy of our ancestors and the impact of karma on their current life.',
-      icon: CupertinoIcons.circle,
-      color: Color(0xFFC8E6C9),
+      image: null,
     ),
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Proposals for Good and Slander',
-      description:
+      text:
           'Specific methods of behavior, such as good prayers and amulets to solve the problem, are also proposed.',
-      icon: CupertinoIcons.star,
-      color: Color(0xFFFFF9C4),
+      image: null,
     ),
   ];
 
   static final List<FeatureModel> counselingFeatures = [
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Professional Analysis',
-      description: 'Accurate psychology analysis by proven experts.',
-      icon: CupertinoIcons.checkmark_shield,
-      color: Color(0xFF246596),
+      text: 'Accurate psychology analysis by proven experts.',
+      image: null,
     ),
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Thorough Secret Guarantee',
-      description: 'All consultations are 100% secret and confidential.',
-      icon: CupertinoIcons.lock_shield,
-      color: Color(0xFF16A34A),
+      text: 'All consultations are 100% secret and confidential.',
+      image: null,
     ),
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Rapid Feedback',
-      description: 'We provide quick results after each session.',
-      icon: CupertinoIcons.clock,
-      color: Color(0xFF9333EA),
+      text: 'We provide quick results after each session.',
+      image: null,
     ),
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Custom Solution',
-      description: 'Offer personalized solutions for each individual.',
-      icon: CupertinoIcons.heart,
-      color: Color(0xFFEF4444),
+      text: 'Offer personalized solutions for each individual.',
+      image: null,
     ),
   ];
   static final List<FeatureModel> PsycologycounselingFeatures = [
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Confidentiality',
-      description: 'All counseling sessions are strictly confidential.',
-      icon: CupertinoIcons.lock_fill,
-      color: primaryColor,
+      text: 'All counseling sessions are strictly confidential.',
+      image: null,
     ),
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Verified Experts',
-      description: 'Only certified professionals who pass strict screening.',
-      icon: CupertinoIcons.person_crop_circle_fill_badge_checkmark,
-      color: primaryColor,
+      text: 'Only certified professionals who pass strict screening.',
+      image: null,
     ),
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: '24/7 Support',
-      description: 'Get counseling whenever you need it.',
-      icon: CupertinoIcons.clock_fill,
-      color: primaryColor,
+      text: 'Get counseling whenever you need it.',
+      image: null,
     ),
     FeatureModel(
+      id: 0,
+      categoryId: 0,
       title: 'Safe Space',
-      description: 'Access a secure and comfortable counseling environment.',
-      icon: CupertinoIcons.house_fill,
-      color: primaryColor,
+      text: 'Access a secure and comfortable counseling environment.',
+      image: null,
     ),
   ];
 
@@ -606,7 +618,7 @@ class ServiceProvider extends ChangeNotifier {
 
       final response = await http.get(
         Uri.parse(
-          '${ApiEndPoints.FAQ_AND_REVIEWS}?category_id=$categoryId&lang=${Get.locale?.languageCode == 'ko' ? 'ko' : 'en'}',
+          '${ApiEndPoints.FAQ_AND_REVIEWS}?category_id=$categoryId&screen=category&lang=${Get.locale?.languageCode == 'ko' ? 'ko' : 'en'}',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -623,10 +635,14 @@ class ServiceProvider extends ChangeNotifier {
           );
           return result.data;
         } else {
+          print("categoryId****" + categoryId.toString());
+
           debugPrint('❌ FAQ and Reviews API error: ${data['message']}');
           return null;
         }
       } else {
+        print("categoryId****" + categoryId.toString());
+
         debugPrint(
           '❌ FAQ and Reviews API failed: ${response.statusCode} - ${response.body}',
         );

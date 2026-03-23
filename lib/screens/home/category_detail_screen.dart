@@ -159,10 +159,16 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             (e) => ListTile(
                               tileColor: primaryColor.withAlpha(5),
                               contentPadding: EdgeInsets.all(0),
-
                               leading: CircleAvatar(
-                                backgroundColor: e.color,
-                                child: Icon(e.icon, color: Colors.black),
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
+                                child: Icon(
+                                  Icons.info_outline,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer,
+                                ),
                               ),
                               minLeadingWidth: 40,
                               title: CustomText(
@@ -170,7 +176,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                 weight: FontWeightConstants.medium,
                               ),
                               subtitle: CustomText(
-                                text: e.description,
+                                text: e.text,
                                 maxlines: 3,
                                 weight: FontWeightConstants.regular,
                                 fontSize: FontConstants.font_14,

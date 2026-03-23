@@ -988,6 +988,7 @@ class _AddFortuneserviceTabviewState extends State<AddFortuneserviceTabview> {
                     const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () async {
+                        print('add hashtag button pressed');
                         if (!formKey.currentState!.validate()) {
                           // show message
 
@@ -1009,7 +1010,9 @@ class _AddFortuneserviceTabviewState extends State<AddFortuneserviceTabview> {
                                       : null,
                               "explanation": "User added hashtag",
                               "priority":
-                                  userViewModel.hashTags.last.priority + 1,
+                                  userViewModel.hashTags.isNotEmpty
+                                      ? userViewModel.hashTags.last.priority + 1
+                                      : 1,
                             });
 
                             if (response != null &&
@@ -1026,6 +1029,8 @@ class _AddFortuneserviceTabviewState extends State<AddFortuneserviceTabview> {
                                 selectedHashtags.add(newHashtag);
                                 // Automatically select the newly added hashtag
                                 selectedHashtagIdsSet.add(newHashtag.id);
+                              // Keep UserViewModel hashtag list in sync so it shows up everywhere
+                              userViewModel.hashTags.add(newHashtag);
                               });
                               _hashtagController.clear();
                             }
