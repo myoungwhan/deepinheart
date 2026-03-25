@@ -49,8 +49,8 @@ class SignalingMessage {
       ),
       data: json['data'] ?? {},
       room: json['room'] ?? '',
-      from: json['from'],
-      to: json['to'],
+      from: json['from']?.toString(),
+      to: json['to']?.toString(),
     );
   }
 }
@@ -85,6 +85,10 @@ class SignalingClient {
       
       debugPrint('🔌 Connecting to signaling server: $signalingUrl');
       
+      if (_socket != null) {
+        _socket!.dispose();
+      }
+
       _socket = IO.io(
         signalingUrl,
         IO.OptionBuilder()
@@ -97,11 +101,7 @@ class SignalingClient {
       );
 
       _setupEventListeners();
-      
-      await _socket?.connect();
-      
-      debugPrint('✅ Connected to signaling server');
-      _connectedController.add(null);
+      _socket?.connect();
       
     } catch (e) {
       debugPrint('❌ Failed to connect to signaling server: $e');
@@ -171,43 +171,40 @@ class SignalingClient {
       );
       _messageController.add(message);
     });
+    
+    _socket!.on('error', (data) {
+       debugPrint('❌ Server error: ${data['message']}');
+       _errorController.add(data['message'] ?? 'Unknown server error');
+    });
   }
 
   Future<void> joinRoom(String roomId) async {
     if (!isConnected) {
-      throw Exception('Not connected to signaling server');
+      debugPrint('⚠️ joinRoom called but socket not connected. Waiting...');
+      // Wait for connection
+      await connectedStream.first.timeout(WebRTCConfig.connectionTimeout);
     }
 
     _currentRoom = roomId;
     
-    final message = SignalingMessage(
-      type: SignalingEventType.join,
-      data: {
-        'userId': _userId,
-        'room': roomId,
-      },
-      room: roomId,
-      from: _userId,
-    );
+    final message = {
+      'userId': _userId,
+      'room': roomId,
+    };
 
-    _socket?.emit('join-room', message.toJson());
+    _socket?.emit('join-room', message);
     debugPrint('🏠 Joining room: $roomId');
   }
 
   Future<void> leaveRoom() async {
     if (!isConnected || _currentRoom == null) return;
 
-    final message = SignalingMessage(
-      type: SignalingEventType.leave,
-      data: {
-        'userId': _userId,
-        'room': _currentRoom,
-      },
-      room: _currentRoom!,
-      from: _userId,
-    );
+    final message = {
+      'userId': _userId,
+      'room': _currentRoom,
+    };
 
-    _socket?.emit('leave-room', message.toJson());
+    _socket?.emit('leave-room', message);
     debugPrint('🚪 Leaving room: $_currentRoom');
     
     _currentRoom = null;
@@ -218,15 +215,15 @@ class SignalingClient {
       throw Exception('Not connected to room');
     }
 
-    final message = SignalingMessage(
-      type: SignalingEventType.offer,
-      data: offer,
-      room: _currentRoom!,
-      from: _userId,
-      to: targetUserId,
-    );
+    final message = {
+      'type': SignalingEventType.offer.name,
+      'data': offer,
+      'room': _currentRoom!,
+      'from': _userId,
+      'to': targetUserId,
+    };
 
-    _socket?.emit('send-message', message.toJson());
+    _socket?.emit('send-message', message);
     debugPrint('📤 Sending offer to: $targetUserId');
   }
 
@@ -235,15 +232,15 @@ class SignalingClient {
       throw Exception('Not connected to room');
     }
 
-    final message = SignalingMessage(
-      type: SignalingEventType.answer,
-      data: answer,
-      room: _currentRoom!,
-      from: _userId,
-      to: targetUserId,
-    );
+    final message = {
+      'type': SignalingEventType.answer.name,
+      'data': answer,
+      'room': _currentRoom!,
+      'from': _userId,
+      'to': targetUserId,
+    };
 
-    _socket?.emit('send-message', message.toJson());
+    _socket?.emit('send-message', message);
     debugPrint('📤 Sending answer to: $targetUserId');
   }
 
@@ -252,15 +249,15 @@ class SignalingClient {
       throw Exception('Not connected to room');
     }
 
-    final message = SignalingMessage(
-      type: SignalingEventType.iceCandidate,
-      data: candidate,
-      room: _currentRoom!,
-      from: _userId,
-      to: targetUserId,
-    );
+    final message = {
+      'type': SignalingEventType.iceCandidate.name,
+      'data': candidate,
+      'room': _currentRoom!,
+      'from': _userId,
+      'to': targetUserId,
+    };
 
-    _socket?.emit('send-message', message.toJson());
+    _socket?.emit('send-message', message);
     debugPrint('📤 Sending ICE candidate to: $targetUserId');
   }
 
