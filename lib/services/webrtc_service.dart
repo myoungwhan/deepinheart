@@ -78,13 +78,9 @@ class WebRTCService {
   }
 
   Future<void> _initializeSignalingClient() async {
-    final settings = Provider.of<SettingProvider>(
-      navigatorKey.currentContext!,
-      listen: false,
-    ).settings;
-    
-    final signalingUrl = settings?.webrtcSignalingUrl ?? WebRTCConfig.defaultSignalingUrl;
-    
+    // Use default signaling URL unless you later add WebRTC fields to `SettingsData`.
+    final signalingUrl = WebRTCConfig.defaultSignalingUrl;
+
     _signalingClient = SignalingClient();
     
     await _signalingClient!.connect(signalingUrl, _userId!);
@@ -97,13 +93,8 @@ class WebRTCService {
   }
 
   Future<void> _createPeerConnection() async {
-    final settings = Provider.of<SettingProvider>(
-      navigatorKey.currentContext!,
-      listen: false,
-    ).settings;
-    
-    final config = WebRTCConfig.getPeerConnectionConfig(settings?.webrtcTurnServers);
-    
+    final config = WebRTCConfig.getPeerConnectionConfig(null);
+
     _peerConnection = await createPeerConnection(config);
     
     // Add event listeners
@@ -329,9 +320,10 @@ class WebRTCService {
 
     // Stop local stream
     if (_localStream != null) {
-      await _localStream!.getTracks().forEach((track) async {
-        await track.stop();
-      });
+      for (final track in _localStream!.getTracks()) {
+        // `stop()` doesn't return a Future in flutter_webrtc
+        track.stop();
+      }
       await _localStream!.dispose();
       _localStream = null;
     }
