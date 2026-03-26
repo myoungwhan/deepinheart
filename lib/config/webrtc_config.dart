@@ -70,6 +70,13 @@ class WebRTCConfig {
   // Production Signaling Server URL
   static const String defaultSignalingUrl = 'http://158.247.241.227:3000';
   
+  // Fallback URLs in case primary fails
+  static const List<String> fallbackSignalingUrls = [
+    'ws://localhost:3000',        // Local development
+    'http://127.0.0.1:3000',      // Localhost alternative
+    'wss://158.247.241.227:3000',      // WebSocket secure fallback
+  ];
+  
   static const Duration connectionTimeout = Duration(seconds: 15);
   static const Duration reconnectionDelay = Duration(seconds: 3);
   static const int maxReconnectionAttempts = 5;

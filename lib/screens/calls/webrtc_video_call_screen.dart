@@ -95,6 +95,13 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
       final roomId = WebRTCConfig.generateRoomId(widget.appointmentId?.toString() ?? "0");
       final userId = WebRTCConfig.generateUserId();
       
+      debugPrint('🎥 WebRTC Video Call Initialization:');
+      debugPrint('   - Room ID: $roomId');
+      debugPrint('   - User ID: $userId');
+      debugPrint('   - Channel Name: ${widget.channelName}');
+      debugPrint('   - Appointment ID: ${widget.appointmentId}');
+      debugPrint('   - Counselor ID: ${widget.counselorId}');
+      
       _webrtcService = WebRTCService();
       
       // Listen to service events
@@ -112,6 +119,9 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
       // Set local renderer
       if (_webrtcService!.localStream != null) {
         _localRenderer.srcObject = _webrtcService!.localStream;
+        debugPrint('✅ Local stream set to renderer');
+      } else {
+        debugPrint('⚠️ Local stream is null');
       }
 
       // Start call timer
