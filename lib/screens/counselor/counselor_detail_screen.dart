@@ -495,11 +495,11 @@ class _CounselorDetailScreenState extends State<CounselorDetailScreen>
   }
 
   // Start immediate consultation
-  void _startImmediateConsultation(
+  Future<void> _startImmediateConsultation(
     ConsulationTabViewState state,
     String channelName,
     int? appointmentId, // Add appointment ID parameter
-  ) {
+  ) async {
     // CRITICAL: Validate channel name
     if (channelName == null || channelName.isEmpty) {
       debugPrint('❌ Channel name is null or empty in _startImmediateConsultation!');
@@ -569,9 +569,10 @@ class _CounselorDetailScreenState extends State<CounselorDetailScreen>
     // Navigate to appropriate call screen based on method
     if (selectedMethod.contains('Video') || selectedMethod.contains('비디오')) {
       await CallEngineSelector.navigateToVideoCall(
-        counselorName: widget.model.nickName.isNotEmpty
-            ? widget.model.nickName
-            : widget.model.name,
+        counselorName:
+            widget.model.nickName.isNotEmpty
+                ? widget.model.nickName
+                : widget.model.name,
         channelName: channelName,
         userId: userId,
         counselorRate: counselorRate,
@@ -586,9 +587,10 @@ class _CounselorDetailScreenState extends State<CounselorDetailScreen>
         selectedMethod.contains('음성') ||
         selectedMethod.contains('전화')) {
       await CallEngineSelector.navigateToVoiceCall(
-        counselorName: widget.model.nickName.isNotEmpty
-            ? widget.model.nickName
-            : widget.model.name,
+        counselorName:
+            widget.model.nickName.isNotEmpty
+                ? widget.model.nickName
+                : widget.model.name,
         channelName: channelName,
         userId: userId,
         counselorRate: counselorRate,
@@ -620,9 +622,10 @@ class _CounselorDetailScreenState extends State<CounselorDetailScreen>
     } else {
       // Default to video call if method is unclear
       await CallEngineSelector.navigateToVideoCall(
-        counselorName: widget.model.nickName.isNotEmpty
-            ? widget.model.nickName
-            : widget.model.name,
+        counselorName:
+            widget.model.nickName.isNotEmpty
+                ? widget.model.nickName
+                : widget.model.name,
         channelName: channelName,
         userId: userId,
         counselorRate: counselorRate,
@@ -706,7 +709,6 @@ class _CounselorDetailScreenState extends State<CounselorDetailScreen>
                 ),
               ),
             ),
-         
           ];
         },
         body: Padding(

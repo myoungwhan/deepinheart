@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -47,21 +48,21 @@ class WebRTCVoiceCallScreen extends StatefulWidget {
 class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
     with WidgetsBindingObserver {
   WebRTCService? _webrtcService;
-  
+
   bool _isLoading = true;
   bool _isConnected = false;
   bool _isMicrophoneEnabled = true;
   bool _isSpeakerEnabled = false;
-  
+
   Timer? _callTimer;
   Timer? _coinDeductionTimer;
   Duration _callDuration = Duration.zero;
-  
+
   double _coinsLeft = 0.0;
   double _initialCoins = 0.0;
   late double _coinsPerMinute;
   late double _coinsPerSecond;
-  
+
   static const int LOW_COINS_THRESHOLD = 100;
   bool _lowCoinsWarningShown = false;
   bool _lessMinuteWarningShown = false;
@@ -74,7 +75,7 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     _initializeCall();
   }
 
@@ -99,7 +100,7 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
       debugPrint('   - Counselor ID: ${widget.counselorId}');
       
       _webrtcService = WebRTCService();
-      
+
       // Listen to service events
       _webrtcService!.connectionState.listen(_onConnectionStateChanged);
       _webrtcService!.remoteStream.listen(_onRemoteStream);
@@ -123,7 +124,6 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
       setState(() {
         _isLoading = false;
       });
-
     } catch (e) {
       debugPrint('❌ Failed to initialize WebRTC voice call: $e');
       _showErrorDialog('Failed to initialize call: $e');
@@ -201,12 +201,9 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
     }
 
     _coinsLeft -= _coinsPerSecond;
-    
+
     // Update user coins in provider
-    final userProvider = Provider.of<UserViewModel>(
-      context,
-      listen: false,
-    );
+    final userProvider = Provider.of<UserViewModel>(context, listen: false);
     userProvider.updateCoins(_coinsLeft.toInt());
   }
 
@@ -262,13 +259,14 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => CallRatingDialog(
-        counselorId: widget.counselorId ?? 0,
-        appointmentId: widget.appointmentId ?? 0,
-        counselorName: widget.counselorName,
-        counselorImage: widget.counselorImage,
-        callDuration: _callDuration,
-      ),
+      builder:
+          (context) => CallRatingDialog(
+            counselorId: widget.counselorId ?? 0,
+            appointmentId: widget.appointmentId ?? 0,
+            counselorName: widget.counselorName,
+            counselorImage: widget.counselorImage,
+            callDuration: _callDuration,
+          ),
     ).then((_) {
       if (mounted) Get.back();
     });
@@ -277,19 +275,20 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Error'.tr),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Get.back();
-              _endCall();
-            },
-            child: Text('OK'.tr),
+      builder:
+          (context) => AlertDialog(
+            title: Text('Error'.tr),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                  _endCall();
+                },
+                child: Text('OK'.tr),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -318,14 +317,17 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
   }
 
   void _startAudioVisualization() {
-    _audioVisualizationTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
+    _audioVisualizationTimer = Timer.periodic(Duration(milliseconds: 100), (
+      timer,
+    ) {
       if (mounted && _isConnected && _isMicrophoneEnabled) {
         setState(() {
           // Simulate audio levels
           for (int i = 0; i < _audioLevels.length; i++) {
-            _audioLevels[i] = (i == timer.tick % _audioLevels.length)
-                ? (0.3 + (timer.tick % 70) / 100.0)
-                : _audioLevels[i] * 0.8;
+            _audioLevels[i] =
+                (i == timer.tick % _audioLevels.length)
+                    ? (0.3 + (timer.tick % 70) / 100.0)
+                    : _audioLevels[i] * 0.8;
           }
         });
       }
@@ -348,9 +350,7 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: primaryColor,
-      body: _isLoading
-          ? _buildLoadingUI()
-          : _buildCallUI(),
+      body: _isLoading ? _buildLoadingUI() : _buildCallUI(),
     );
   }
 
@@ -399,28 +399,25 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
                     color: Colors.white.withOpacity(0.2),
                     border: Border.all(color: Colors.white, width: 3),
                   ),
-                  child: widget.counselorImage != null
-                      ? ClipOval(
-                          child: Image.network(
-                            widget.counselorImage!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.person,
-                                size: 80.w,
-                                color: Colors.white,
-                              );
-                            },
-                          ),
-                        )
-                      : Icon(
-                          Icons.person,
-                          size: 80.w,
-                          color: Colors.white,
-                        ),
+                  child:
+                      widget.counselorImage != null
+                          ? ClipOval(
+                            child: Image.network(
+                              widget.counselorImage!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.person,
+                                  size: 80.w,
+                                  color: Colors.white,
+                                );
+                              },
+                            ),
+                          )
+                          : Icon(Icons.person, size: 80.w, color: Colors.white),
                 ),
                 SizedBox(height: 30.h),
-                
+
                 // Counselor name and status
                 CustomText(
                   text: widget.counselorName,
@@ -435,15 +432,15 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
                   color: Colors.white.withOpacity(0.8),
                 ),
                 SizedBox(height: 20.h),
-                
+
                 // Call duration
                 CustomText(
                   text: _formatDuration(_callDuration),
                   fontSize: FontConstants.font_32,
                   color: Colors.white,
-                  weight: FontWeightConstants.light,
+                  weight: FontWeightConstants.regular,
                 ),
-                
+
                 // Audio visualization
                 SizedBox(height: 40.h),
                 _buildAudioVisualization(),
@@ -466,7 +463,14 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
                 color: Colors.white,
                 weight: FontWeightConstants.bold,
               ),
-              CoinBalanceWidget(coins: _coinsLeft.toInt()),
+              CoinBalanceWidget(
+                coinsLeft: _coinsLeft,
+                estimatedMinutesLeft:
+                    _coinsPerMinute > 0
+                        ? (_coinsLeft / _coinsPerMinute).ceil()
+                        : 0,
+                isCounselor: widget.isCounselor,
+              ),
             ],
           ),
         ),
@@ -482,12 +486,14 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
               _buildControlButton(
                 icon: _isMicrophoneEnabled ? Icons.mic : Icons.mic_off,
                 onPressed: _toggleMicrophone,
-                backgroundColor: _isMicrophoneEnabled ? Colors.white30 : Colors.red,
+                backgroundColor:
+                    _isMicrophoneEnabled ? Colors.white30 : Colors.red,
               ),
               _buildControlButton(
                 icon: _isSpeakerEnabled ? Icons.volume_up : Icons.volume_off,
                 onPressed: _toggleSpeaker,
-                backgroundColor: _isSpeakerEnabled ? Colors.white30 : Colors.white30,
+                backgroundColor:
+                    _isSpeakerEnabled ? Colors.white30 : Colors.white30,
               ),
               _buildControlButton(
                 icon: Icons.call_end,
@@ -544,11 +550,7 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
             ),
           ],
         ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 35.w,
-        ),
+        child: Icon(icon, color: Colors.white, size: 35.w),
       ),
     );
   }
@@ -565,7 +567,7 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     switch (state) {
       case AppLifecycleState.paused:
         _saveCurrentCallState();

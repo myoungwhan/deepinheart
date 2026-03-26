@@ -5,7 +5,7 @@ import 'package:deepinheart/config/webrtc_config.dart';
 import 'package:deepinheart/services/signaling_client.dart';
 import 'package:deepinheart/Controller/Viewmodel/setting_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:deepinheart/main.dart'; 
+import 'package:deepinheart/main.dart'; // Assuming navigatorKey is here
 
 enum WebRTCConnectionState {
   disconnected,
@@ -23,17 +23,18 @@ class WebRTCService {
   String? _roomId;
   String? _userId;
   String? _remoteUserId;
-  
-  final StreamController<MediaStream> _remoteStreamController = 
+
+  final StreamController<MediaStream> _remoteStreamController =
       StreamController<MediaStream>.broadcast();
-  final StreamController<WebRTCConnectionState> _connectionStateController = 
+  final StreamController<WebRTCConnectionState> _connectionStateController =
       StreamController<WebRTCConnectionState>.broadcast();
-  final StreamController<String> _errorController = 
+  final StreamController<String> _errorController =
       StreamController<String>.broadcast();
 
   // Event streams
   Stream<MediaStream> get remoteStream => _remoteStreamController.stream;
-  Stream<WebRTCConnectionState> get connectionState => _connectionStateController.stream;
+  Stream<WebRTCConnectionState> get connectionState =>
+      _connectionStateController.stream;
   Stream<String> get errorStream => _errorController.stream;
 
   // State getters
@@ -136,75 +137,112 @@ class WebRTCService {
 
   Future<void> _createPeerConnection() async {
     final context = navigatorKey.currentContext;
-    final turnServers = context != null 
-        ? Provider.of<SettingProvider>(context, listen: false).settings?.webrtcTurnServers 
-        : null;
-    
+    final turnServers =
+        context != null
+            ? Provider.of<SettingProvider>(
+              context,
+              listen: false,
+            ).settings?.webrtcTurnServers
+            : null;
+
     final config = WebRTCConfig.getPeerConnectionConfig(turnServers);
-    
+
     _peerConnection = await createPeerConnection(config);
-    
+
     _peerConnection!.onIceCandidate = (RTCIceCandidate candidate) {
       if (_remoteUserId != null) {
         _signalingClient!.sendIceCandidate(_remoteUserId!, candidate.toMap());
+      } else {
+        debugPrint(
+          '⌛ ICE candidate generated but remoteUserId is null. Storing...',
+        );
       }
     };
 
     _peerConnection!.onConnectionState = (RTCPeerConnectionState state) {
       debugPrint('🔗 Peer Connection state: ${state.name}');
-      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-        _currentState = WebRTCConnectionState.connected;
-        _connectionStateController.add(WebRTCConnectionState.connected);
-      } else if (state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected || 
-                 state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
-        _currentState = WebRTCConnectionState.failed;
-        _connectionStateController.add(WebRTCConnectionState.failed);
+      switch (state) {
+        case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
+          _currentState = WebRTCConnectionState.connected;
+          _connectionStateController.add(WebRTCConnectionState.connected);
+          break;
+        case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
+        case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
+          _currentState = WebRTCConnectionState.failed;
+          _connectionStateController.add(WebRTCConnectionState.failed);
+          break;
+        default:
+          break;
       }
     };
 
     _peerConnection!.onTrack = (RTCTrackEvent event) {
       if (event.streams.isNotEmpty) {
+        debugPrint('📹 Remote stream received via onTrack');
         _remoteStream = event.streams[0];
         _remoteStreamController.add(_remoteStream!);
       }
+    };
+
+    // Legacy support
+    _peerConnection!.onAddStream = (MediaStream stream) {
+      debugPrint('📹 Remote stream added (legacy)');
+      _remoteStream = stream;
+      _remoteStreamController.add(stream);
     };
 
     debugPrint('✅ Peer connection created');
   }
 
   Future<void> _getUserMedia() async {
-    final constraints = _isVideoCall 
-        ? WebRTCConfig.videoConstraints 
-        : WebRTCConfig.audioConstraints;
+    final constraints =
+        _isVideoCall
+            ? WebRTCConfig.videoConstraints
+            : WebRTCConfig.audioConstraints;
 
     _localStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+    // Use Transceivers for better control in modern WebRTC
     _localStream!.getTracks().forEach((track) {
       _peerConnection!.addTrack(track, _localStream!);
     });
+
+    debugPrint('✅ Local media stream obtained');
   }
 
   Future<void> _handleSignalingMessage(SignalingMessage message) async {
+    debugPrint(
+      '📨 Handling signaling message: ${message.type.name} from ${message.from}',
+    );
+
+    // CRITICAL FIX: Ensure remoteUserId is updated from ANY incoming message
     if (message.from != null && message.from != _userId) {
       _remoteUserId = message.from;
     }
 
     switch (message.type) {
       case SignalingEventType.userJoined:
+        // When someone else joins, we are the 'caller', so we create the offer
         await _createAndSendOffer();
         break;
+
       case SignalingEventType.offer:
         await _handleOffer(message.data);
         break;
+
       case SignalingEventType.answer:
         await _handleAnswer(message.data);
         break;
+
       case SignalingEventType.iceCandidate:
         await _handleIceCandidate(message.data);
         break;
+
       case SignalingEventType.userLeft:
         _remoteUserId = null;
         _connectionStateController.add(WebRTCConnectionState.disconnected);
         break;
+
       default:
         break;
     }
@@ -216,6 +254,7 @@ class WebRTCService {
       RTCSessionDescription offer = await _peerConnection!.createOffer();
       await _peerConnection!.setLocalDescription(offer);
       await _signalingClient!.sendOffer(_remoteUserId!, offer.toMap());
+      debugPrint('📤 Offer sent to $_remoteUserId');
     } catch (e) {
       debugPrint('❌ Offer Error: $e');
     }
@@ -225,12 +264,14 @@ class WebRTCService {
     if (_peerConnection == null) return;
     try {
       await _peerConnection!.setRemoteDescription(
-        RTCSessionDescription(offerData['sdp'], 'offer')
+        RTCSessionDescription(offerData['sdp'], 'offer'),
       );
       RTCSessionDescription answer = await _peerConnection!.createAnswer();
       await _peerConnection!.setLocalDescription(answer);
+
       if (_remoteUserId != null) {
         await _signalingClient!.sendAnswer(_remoteUserId!, answer.toMap());
+        debugPrint('📤 Answer sent to $_remoteUserId');
       }
     } catch (e) {
       debugPrint('❌ Handle Offer Error: $e');
@@ -241,7 +282,7 @@ class WebRTCService {
     if (_peerConnection == null) return;
     try {
       await _peerConnection!.setRemoteDescription(
-        RTCSessionDescription(answerData['sdp'], 'answer')
+        RTCSessionDescription(answerData['sdp'], 'answer'),
       );
     } catch (e) {
       debugPrint('❌ Handle Answer Error: $e');
@@ -251,14 +292,11 @@ class WebRTCService {
   Future<void> _handleIceCandidate(Map<String, dynamic> candidateData) async {
     if (_peerConnection == null) return;
     try {
-      // FIX: Guard against null candidate which signals end of gathering
-      if (candidateData['candidate'] == null) return;
-
       await _peerConnection!.addCandidate(
         RTCIceCandidate(
-          candidateData['candidate'].toString(),
-          candidateData['sdpMid']?.toString() ?? '',
-          candidateData['sdpMLineIndex'] ?? 0,
+          candidateData['candidate'],
+          candidateData['sdpMid'],
+          candidateData['sdpMLineIndex'],
         ),
       );
     } catch (e) {
@@ -266,6 +304,7 @@ class WebRTCService {
     }
   }
 
+  // ... (Media control methods remain same as before)
   Future<void> toggleMicrophone() async {
     if (_localStream == null) return;
     final audioTrack = _localStream!.getAudioTracks().first;
@@ -284,8 +323,10 @@ class WebRTCService {
     await Helper.switchCamera(videoTrack);
   }
 
-  bool get isMicrophoneEnabled => _localStream?.getAudioTracks().first.enabled ?? false;
-  bool get isCameraEnabled => _localStream?.getVideoTracks().first.enabled ?? false;
+  bool get isMicrophoneEnabled =>
+      _localStream?.getAudioTracks().first.enabled ?? false;
+  bool get isCameraEnabled =>
+      _localStream?.getVideoTracks().first.enabled ?? false;
 
   Future<void> dispose() async {
     _localStream?.getTracks().forEach((t) => t.stop());

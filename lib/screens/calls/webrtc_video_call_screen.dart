@@ -50,22 +50,22 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
   WebRTCService? _webrtcService;
   RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
-  
+
   bool _isLoading = true;
   bool _isConnected = false;
   bool _isMicrophoneEnabled = true;
   bool _isCameraEnabled = true;
   bool _isSpeakerEnabled = false;
-  
+
   Timer? _callTimer;
   Timer? _coinDeductionTimer;
   Duration _callDuration = Duration.zero;
-  
+
   double _coinsLeft = 0.0;
   double _initialCoins = 0.0;
   late double _coinsPerMinute;
   late double _coinsPerSecond;
-  
+
   static const int LOW_COINS_THRESHOLD = 100;
   bool _lowCoinsWarningShown = false;
   bool _lessMinuteWarningShown = false;
@@ -74,7 +74,7 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     _initializeCall();
   }
 
@@ -92,7 +92,9 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
       await _loadUserCoins();
 
       // Initialize WebRTC service
-      final roomId = WebRTCConfig.generateRoomId(widget.appointmentId?.toString() ?? "0");
+      final roomId = WebRTCConfig.generateRoomId(
+        widget.appointmentId?.toString() ?? "0",
+      );
       final userId = WebRTCConfig.generateUserId();
       
       debugPrint('🎥 WebRTC Video Call Initialization:');
@@ -103,7 +105,7 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
       debugPrint('   - Counselor ID: ${widget.counselorId}');
       
       _webrtcService = WebRTCService();
-      
+
       // Listen to service events
       _webrtcService!.connectionState.listen(_onConnectionStateChanged);
       _webrtcService!.remoteStream.listen(_onRemoteStream);
@@ -130,7 +132,6 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
       setState(() {
         _isLoading = false;
       });
-
     } catch (e) {
       debugPrint('❌ Failed to initialize WebRTC call: $e');
       _showErrorDialog('Failed to initialize call: $e');
@@ -139,10 +140,7 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
 
   Future<void> _loadUserCoins() async {
     try {
-      final userProvider = Provider.of<UserViewModel>(
-        context,
-        listen: false,
-      );
+      final userProvider = Provider.of<UserViewModel>(context, listen: false);
       // Fixed: use userModel instead of user
       _coinsLeft = (userProvider.userModel?.data.coins ?? 0).toDouble();
       _initialCoins = _coinsLeft;
@@ -210,12 +208,9 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
     }
 
     _coinsLeft -= _coinsPerSecond;
-    
+
     // Update user coins in provider
-    final userProvider = Provider.of<UserViewModel>(
-      context,
-      listen: false,
-    );
+    final userProvider = Provider.of<UserViewModel>(context, listen: false);
     userProvider.updateCoins(_coinsLeft.toInt());
   }
 
@@ -271,13 +266,14 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => CallRatingDialog(
-        counselorId: widget.counselorId ?? 0,
-        appointmentId: widget.appointmentId ?? 0,
-        counselorName: widget.counselorName,
-        counselorImage: widget.counselorImage,
-        callDuration: _callDuration,
-      ),
+      builder:
+          (context) => CallRatingDialog(
+            counselorId: widget.counselorId ?? 0,
+            appointmentId: widget.appointmentId ?? 0,
+            counselorName: widget.counselorName,
+            counselorImage: widget.counselorImage,
+            callDuration: _callDuration,
+          ),
     ).then((_) {
       if (mounted) Get.back();
     });
@@ -286,19 +282,20 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Error'.tr),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Get.back();
-              _endCall();
-            },
-            child: Text('OK'.tr),
+      builder:
+          (context) => AlertDialog(
+            title: Text('Error'.tr),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                  _endCall();
+                },
+                child: Text('OK'.tr),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -355,9 +352,7 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: _isLoading
-          ? _buildLoadingUI()
-          : _buildCallUI(),
+      body: _isLoading ? _buildLoadingUI() : _buildCallUI(),
     );
   }
 
@@ -385,26 +380,27 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
         Positioned.fill(
           child: Container(
             color: Colors.black,
-            child: _remoteRenderer.srcObject != null
-                ? RTCVideoView(_remoteRenderer)
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.person,
-                          size: 80.w,
-                          color: Colors.white.withOpacity(0.5),
-                        ),
-                        SizedBox(height: 10.h),
-                        CustomText(
-                          text: 'Waiting for ${widget.counselorName}...'.tr,
-                          fontSize: FontConstants.font_16,
-                          color: Colors.white,
-                        ),
-                      ],
+            child:
+                _remoteRenderer.srcObject != null
+                    ? RTCVideoView(_remoteRenderer)
+                    : Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.person,
+                            size: 80.w,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                          SizedBox(height: 10.h),
+                          CustomText(
+                            text: 'Waiting for ${widget.counselorName}...'.tr,
+                            fontSize: FontConstants.font_16,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
           ),
         ),
 
@@ -421,9 +417,10 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10.r),
-              child: _localRenderer.srcObject != null
-                  ? RTCVideoView(_localRenderer, mirror: true)
-                  : Container(color: Colors.grey),
+              child:
+                  _localRenderer.srcObject != null
+                      ? RTCVideoView(_localRenderer, mirror: true)
+                      : Container(color: Colors.grey),
             ),
           ),
         ),
@@ -453,7 +450,14 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
                   ],
                 ),
               ),
-              CoinBalanceWidget(coins: _coinsLeft.toInt()),
+              CoinBalanceWidget(
+                coinsLeft: _coinsLeft,
+                estimatedMinutesLeft:
+                    _coinsPerMinute > 0
+                        ? (_coinsLeft / _coinsPerMinute).ceil()
+                        : 0,
+                isCounselor: widget.isCounselor,
+              ),
             ],
           ),
         ),
@@ -469,7 +473,8 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
               _buildControlButton(
                 icon: _isMicrophoneEnabled ? Icons.mic : Icons.mic_off,
                 onPressed: _toggleMicrophone,
-                backgroundColor: _isMicrophoneEnabled ? Colors.white30 : Colors.red,
+                backgroundColor:
+                    _isMicrophoneEnabled ? Colors.white30 : Colors.red,
               ),
               _buildControlButton(
                 icon: _isCameraEnabled ? Icons.videocam : Icons.videocam_off,
@@ -484,7 +489,8 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
               _buildControlButton(
                 icon: _isSpeakerEnabled ? Icons.volume_up : Icons.volume_off,
                 onPressed: _toggleSpeaker,
-                backgroundColor: _isSpeakerEnabled ? Colors.white30 : Colors.white30,
+                backgroundColor:
+                    _isSpeakerEnabled ? Colors.white30 : Colors.white30,
               ),
               _buildControlButton(
                 icon: Icons.call_end,
@@ -512,11 +518,7 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
           color: backgroundColor,
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 30.w,
-        ),
+        child: Icon(icon, color: Colors.white, size: 30.w),
       ),
     );
   }
@@ -535,7 +537,7 @@ class _WebRTCVideoCallScreenState extends State<WebRTCVideoCallScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     switch (state) {
       case AppLifecycleState.paused:
         _saveCurrentCallState();
