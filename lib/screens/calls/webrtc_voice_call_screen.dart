@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:deepinheart/services/webrtc_service.dart';
 import 'package:deepinheart/services/call_state_manager.dart';
 import 'package:deepinheart/screens/calls/widgets/coin_balance_widget.dart';
@@ -88,11 +89,16 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
       await _loadUserCoins();
 
       // Initialize WebRTC service
-      final roomId = WebRTCConfig.generateRoomId(
-        widget.appointmentId.toString() ?? "0",
-      );
+      final roomId = WebRTCConfig.generateRoomId(widget.appointmentId?.toString() ?? "0");
       final userId = WebRTCConfig.generateUserId();
-
+      
+      debugPrint('🎤 WebRTC Voice Call Initialization:');
+      debugPrint('   - Room ID: $roomId');
+      debugPrint('   - User ID: $userId');
+      debugPrint('   - Channel Name: ${widget.channelName}');
+      debugPrint('   - Appointment ID: ${widget.appointmentId}');
+      debugPrint('   - Counselor ID: ${widget.counselorId}');
+      
       _webrtcService = WebRTCService();
 
       // Listen to service events
@@ -106,6 +112,8 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
         roomId: roomId,
         userId: userId,
       );
+
+      debugPrint('✅ WebRTC voice service initialized');
 
       // Start audio visualization
       _startAudioVisualization();
@@ -124,8 +132,11 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
 
   Future<void> _loadUserCoins() async {
     try {
-      final userProvider = Provider.of<UserViewModel>(context, listen: false);
-      _coinsLeft = (userProvider.userModel!.data.coins ?? 0).toDouble();
+      final userProvider = Provider.of<UserViewModel>(
+        context,
+        listen: false,
+      );
+      _coinsLeft = (userProvider.userModel?.data.coins ?? 0).toDouble();
       _initialCoins = _coinsLeft;
       _coinsPerMinute = widget.counselorRate;
       _coinsPerSecond = _coinsPerMinute / 60.0;
@@ -167,17 +178,19 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
 
   void _startCallTimer() {
     _callTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        _callDuration = Duration(seconds: timer.tick);
-      });
+      if (mounted) {
+        setState(() {
+          _callDuration = Duration(seconds: timer.tick);
+        });
 
-      // Deduct coins every second
-      if (!widget.isCounselor && _isConnected) {
-        _deductCoins();
+        // Deduct coins every second
+        if (!widget.isCounselor && _isConnected) {
+          _deductCoins();
+        }
+
+        // Check for warnings
+        _checkCoinWarnings();
       }
-
-      // Check for warnings
-      _checkCoinWarnings();
     });
   }
 
@@ -255,7 +268,7 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
             callDuration: _callDuration,
           ),
     ).then((_) {
-      Get.back(); // Go back after rating
+      if (mounted) Get.back();
     });
   }
 
@@ -281,16 +294,19 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
 
   Future<void> _toggleMicrophone() async {
     await _webrtcService?.toggleMicrophone();
-    setState(() {
-      _isMicrophoneEnabled = !_isMicrophoneEnabled;
-    });
+    if (mounted) {
+      setState(() {
+        _isMicrophoneEnabled = !_isMicrophoneEnabled;
+      });
+    }
   }
 
   void _toggleSpeaker() {
-    setState(() {
-      _isSpeakerEnabled = !_isSpeakerEnabled;
-    });
-    // Implement speaker toggle logic
+    if (mounted) {
+      setState(() {
+        _isSpeakerEnabled = !_isSpeakerEnabled;
+      });
+    }
   }
 
   void _endCall() {
@@ -306,7 +322,7 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
     ) {
       if (mounted && _isConnected && _isMicrophoneEnabled) {
         setState(() {
-          // Simulate audio levels (in real implementation, use actual audio analysis)
+          // Simulate audio levels
           for (int i = 0; i < _audioLevels.length; i++) {
             _audioLevels[i] =
                 (i == timer.tick % _audioLevels.length)

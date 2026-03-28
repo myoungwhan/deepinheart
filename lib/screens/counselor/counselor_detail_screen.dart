@@ -454,10 +454,35 @@ class _CounselorDetailScreenState extends State<CounselorDetailScreen>
           // API call succeeded, proceed with consultation using the returned channel_id
           final appointmentId =
               response['id'] as int?; // Extract appointment ID
-          _startImmediateConsultation(
-            state,
-            response['chanel_id'],
-            appointmentId,
+          final channelId = response['chanel_id']?.toString() ?? '';
+
+          debugPrint('🔍 API Response Validation:');
+          debugPrint('   - Response: $response');
+          debugPrint('   - Channel ID: $channelId');
+          debugPrint('   - Appointment ID: $appointmentId');
+
+          if (channelId.isEmpty) {
+            debugPrint('❌ Channel ID from API is empty!');
+            Get.snackbar(
+              'Error'.tr,
+              'Failed to get channel ID from server. Please try again.'.tr,
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+            return;
+          }
+
+          _startImmediateConsultation(state, channelId, appointmentId);
+        } else {
+          debugPrint('❌ API Response is null or missing channel_id!');
+          debugPrint('   - Response: $response');
+          Get.snackbar(
+            'Error'.tr,
+            'Failed to create consultation. Please try again.'.tr,
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
           );
         }
         // If failed, error message is already shown by the provider
@@ -471,6 +496,23 @@ class _CounselorDetailScreenState extends State<CounselorDetailScreen>
     String channelName,
     int? appointmentId, // Add appointment ID parameter
   ) async {
+    // CRITICAL: Validate channel name
+    if (channelName == null || channelName.isEmpty) {
+      debugPrint(
+        '❌ Channel name is null or empty in _startImmediateConsultation!',
+      );
+      Get.snackbar(
+        'Error'.tr,
+        'Channel name is missing. Please try again.'.tr,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    debugPrint('🚀 Starting immediate consultation with channel: $channelName');
+
     // Get the selected consultation method
     if (state.selectedMethodIndex < 0 ||
         state.selectedMethodIndex >= state.options.length) {

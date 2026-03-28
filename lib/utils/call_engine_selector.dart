@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:deepinheart/Controller/Viewmodel/setting_provider.dart';
@@ -6,6 +7,7 @@ import 'package:deepinheart/screens/calls/video_call_screen.dart';
 import 'package:deepinheart/screens/calls/voice_call_screen.dart';
 import 'package:deepinheart/screens/calls/webrtc_video_call_screen.dart';
 import 'package:deepinheart/screens/calls/webrtc_voice_call_screen.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 enum CallEngine {
   agora,
@@ -46,12 +48,32 @@ class CallEngineSelector {
     bool isCounselor = false,
     bool isTroat = false,
   }) async {
+    // CRITICAL: Validate all required parameters
+    if (channelName == null || channelName.isEmpty) {
+      debugPrint('❌ Channel name is null or empty!');
+      Get.snackbar('Error', 'Channel name is missing');
+      return;
+    }
+    
+    debugPrint('🔍 validateParams - counselorName: $counselorName, channelName: $channelName, userId: $userId');
+    
     final engine = getCurrentEngine();
     
     debugPrint('🚀 Navigating to video call with engine: ${engine.name}');
+    debugPrint('📞 Call Details:');
+    debugPrint('   - Channel Name: $channelName');
+    debugPrint('   - User ID: $userId');
+    debugPrint('   - Counselor: $counselorName');
+    debugPrint('   - Appointment ID: $appointmentId');
     
     switch (engine) {
       case CallEngine.webrtc:
+        // Enable WebRTC debugging
+        if (kDebugMode) {
+          debugPrint('🐛 WebRTC Debug Mode Enabled');
+          WebRTC.debug = true;
+        }
+        
         await Get.to(
           () => WebRTCVideoCallScreen(
             counselorName: counselorName,
@@ -97,12 +119,32 @@ class CallEngineSelector {
     bool isCounselor = false,
     bool isTroat = false,
   }) async {
+    // CRITICAL: Validate all required parameters
+    if (channelName == null || channelName.isEmpty) {
+      debugPrint('❌ Channel name is null or empty!');
+      Get.snackbar('Error', 'Channel name is missing');
+      return;
+    }
+    
+    debugPrint('🔍 validateParams - counselorName: $counselorName, channelName: $channelName, userId: $userId');
+    
     final engine = getCurrentEngine();
     
     debugPrint('🚀 Navigating to voice call with engine: ${engine.name}');
+    debugPrint('📞 Call Details:');
+    debugPrint('   - Channel Name: $channelName');
+    debugPrint('   - User ID: $userId');
+    debugPrint('   - Counselor: $counselorName');
+    debugPrint('   - Appointment ID: $appointmentId');
     
     switch (engine) {
       case CallEngine.webrtc:
+        // Enable WebRTC debugging
+        if (kDebugMode) {
+          debugPrint('🐛 WebRTC Debug Mode Enabled');
+          WebRTC.debug = true;
+        }
+        
         await Get.to(
           () => WebRTCVoiceCallScreen(
             counselorName: counselorName,

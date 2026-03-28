@@ -53,11 +53,31 @@ class WebRTCService {
     required String userId,
   }) async {
     try {
+      // CRITICAL: Validate all required parameters
+      if (roomId == null || roomId.isEmpty) {
+        debugPrint('❌ Room ID is null or empty!');
+        _errorController.add('Room ID is required');
+        _connectionStateController.add(WebRTCConnectionState.failed);
+        return;
+      }
+      
+      if (userId == null || userId.isEmpty) {
+        debugPrint('❌ User ID is null or empty!');
+        _errorController.add('User ID is required');
+        _connectionStateController.add(WebRTCConnectionState.failed);
+        return;
+      }
+      
       _isVideoCall = isVideoCall;
       _roomId = roomId;
       _userId = userId;
 
       debugPrint('🎥 Initializing WebRTC service...');
+      debugPrint('📞 Call Parameters:');
+      debugPrint('   - Is Video Call: $isVideoCall');
+      debugPrint('   - Room ID: $roomId');
+      debugPrint('   - User ID: $userId');
+      
       _connectionStateController.add(WebRTCConnectionState.connecting);
 
       await _initializeSignalingClient();
@@ -74,23 +94,41 @@ class WebRTCService {
 
   Future<void> _initializeSignalingClient() async {
     final context = navigatorKey.currentContext;
-    if (context == null) throw Exception('Navigator context not available');
+    if (context == null) {
+      debugPrint('❌ Navigator context not available');
+      throw Exception('Navigator context not available');
+    }
 
-    final settings =
-        Provider.of<SettingProvider>(context, listen: false).settings;
-
-    // Production Fix: Use port 3000 if not specified, and prefer HTTPS/HTTP for Socket.IO
-    String signalingUrl =
-        settings?.webrtcSignalingUrl ?? WebRTCConfig.defaultSignalingUrl;
-
+    final settings = Provider.of<SettingProvider>(context, listen: false).settings;
+    
+    // FIX: Correctly check settings and use the URL from Admin Panel
+    String signalingUrl = (settings?.webrtcSignalingUrl != null && settings!.webrtcSignalingUrl.isNotEmpty)
+        ? settings.webrtcSignalingUrl
+        : WebRTCConfig.defaultSignalingUrl;
+    
+    // CRITICAL: Validate signaling URL
+    if (signalingUrl.isEmpty) {
+      debugPrint('❌ Signaling server URL is empty!');
+      throw Exception('Signaling server URL is empty');
+    }
+    
+    debugPrint('🔗 Signaling Server URL: $signalingUrl');
+    debugPrint('🏠 Room ID: $_roomId');
+    debugPrint('👤 User ID: $_userId');
+    
     _signalingClient = SignalingClient();
-
-    // Listen for signaling messages BEFORE connecting
+    
     _signalingClient!.messageStream.listen(_handleSignalingMessage);
     _signalingClient!.errorStream.listen((err) => _errorController.add(err));
 
     _signalingClient!.connectedStream.listen((_) {
-      _signalingClient!.joinRoom(_roomId!);
+      debugPrint('✅ Signaling client connected, joining room...');
+      if (_roomId != null) {
+        _signalingClient!.joinRoom(_roomId!);
+      } else {
+        debugPrint('❌ Room ID is null when trying to join!');
+        _errorController.add('Room ID is null');
+      }
     });
 
     await _signalingClient!.connect(signalingUrl, _userId!);
