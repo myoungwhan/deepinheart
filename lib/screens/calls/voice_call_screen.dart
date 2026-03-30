@@ -435,6 +435,73 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
           debugPrint(
             '   App Certificate: ${agoraAppCertificate.isEmpty ? "MISSING" : "OK"}',
           );
+          //show aleart dialog
+          Get.dialog(
+            barrierDismissible: false,
+            Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              child: Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.videocam_off_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 28.w,
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: CustomText(
+                            text: 'Agora Credentials Missing'.tr,
+                            fontSize: FontConstants.font_16,
+                            weight: FontWeightConstants.bold,
+                            maxlines: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10.h),
+                    CustomText(
+                      text: 'Agora credentials are missing in settings'.tr,
+                      fontSize: FontConstants.font_13,
+                      weight: FontWeightConstants.regular,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      maxlines: 3,
+                    ),
+                    SizedBox(height: 16.h),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Get.back(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                        ),
+                        child: CustomText(
+                          text: 'OK'.tr,
+                          fontSize: FontConstants.font_14,
+                          weight: FontWeightConstants.semiBold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+
           _agoraToken = null;
           return;
         }
@@ -1814,7 +1881,7 @@ class _VoiceCallScreenState extends State<VoiceCallScreen>
                 ),
               ),
             ],
-      ),
+          ),
     );
   }
 

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:deepinheart/services/webrtc_service.dart';
 import 'package:deepinheart/services/call_state_manager.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:deepinheart/screens/calls/widgets/coin_balance_widget.dart';
 import 'package:deepinheart/screens/calls/widgets/call_rating_dialog.dart';
 import 'package:deepinheart/Controller/Viewmodel/userviewmodel.dart';
@@ -87,7 +88,9 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
       await _loadUserCoins();
 
       // Initialize WebRTC service
-      final roomId = WebRTCConfig.generateRoomId(widget.appointmentId ?? 0);
+      final roomId = WebRTCConfig.generateRoomId(
+        (widget.appointmentId ?? 0).toString(),
+      );
       final userId = WebRTCConfig.generateUserId();
       
       _webrtcService = WebRTCService();
@@ -126,7 +129,7 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
         context,
         listen: false,
       );
-      _coinsLeft = (userProvider.user?.coins ?? 0).toDouble();
+      _coinsLeft = (userProvider.userModel?.data.coins ?? 0).toDouble();
       _initialCoins = _coinsLeft;
       _coinsPerMinute = widget.counselorRate;
       _coinsPerSecond = _coinsPerMinute / 60.0;
@@ -426,7 +429,7 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
                   text: _formatDuration(_callDuration),
                   fontSize: FontConstants.font_32,
                   color: Colors.white,
-                  weight: FontWeightConstants.light,
+                  weight: FontWeightConstants.regular,
                 ),
                 
                 // Audio visualization
@@ -451,7 +454,13 @@ class _WebRTCVoiceCallScreenState extends State<WebRTCVoiceCallScreen>
                 color: Colors.white,
                 weight: FontWeightConstants.bold,
               ),
-              CoinBalanceWidget(coins: _coinsLeft.toInt()),
+              CoinBalanceWidget(
+                coinsLeft: _coinsLeft,
+                estimatedMinutesLeft: _coinsPerMinute > 0
+                    ? (_coinsLeft / _coinsPerMinute).ceil()
+                    : 0,
+                isCounselor: widget.isCounselor,
+              ),
             ],
           ),
         ),
